@@ -1,10 +1,53 @@
-<html>
-  <head>
-    <title>
-      Hi
-    </title>
-  </head>
-  <body>
-    <h1>HI I am Mridul</h1>
-  </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Capture</title>
+</head>
+<body>
+    <video id="preview" autoplay></video>
+    <button id="start-record">Start Recording</button>
+    <button id="stop-record" disabled>Stop Recording</button>
+    <script>
+        const preview = document.getElementById('preview');
+        const startRecordButton = document.getElementById('start-record');
+        const stopRecordButton = document.getElementById('stop-record');
+
+        let recorder, recordedChunks;
+
+        startRecordButton.addEventListener('click', async () => {
+            recordedChunks = [];
+            startRecordButton.disabled = true;
+            stopRecordButton.disabled = false;
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                preview.srcObject = stream;
+
+                recorder = new MediaRecorder(stream);
+                recorder.ondataavailable = (e) => recordedChunks.push(e.data);
+                recorder.start();
+            } catch (error) {
+                console.error("Error capturing video:", error);
+            }
+        });
+
+        stopRecordButton.addEventListener('click', async () => {
+            startRecordButton.disabled = false;
+            stopRecordButton.disabled = true;
+            recorder.stop();
+
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const videoURL = URL.createObjectURL(blob);
+            preview.src = videoURL;
+
+            // Optional: Download the recorded video
+            // const downloadLink = document.createElement('a');
+            // downloadLink.href = videoURL;
+            // downloadLink.download = 'recording.webm';
+            // downloadLink.click();
+        });
+    </script>
+</body>
 </html>
